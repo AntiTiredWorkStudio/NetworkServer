@@ -172,19 +172,63 @@ public class NetworkInstance
 }
 public interface NetworkDataAdapter
 {
+    /// <summary>
+    /// 数据转换反馈,收到数据需反序列化,反馈到的数据需序列化
+    /// </summary>
+    /// <param name="reciveData">接收到的数据</param>
+    /// <returns>需要反馈给服务器的数据</returns>
     byte[] dataTransfer(byte[] reciveData);
+    /// <summary>
+    /// 当收到的数据可被转换为字符串时
+    /// </summary>
+    /// <param name="content">转为字符串</param>
     void OnReciveString(string content);
 
+    /// <summary>
+    /// 当服务器启动时
+    /// </summary>
+    /// <param name="server">返回服务器对象</param>
     void Server_Launch(NetworkServer server);
+    /// <summary>
+    /// 当检测到客户端连接时
+    /// </summary>
+    /// <param name="client">返回客户端socket</param>
     void Server_OnClientConnected(Socket client);
+    /// <summary>
+    /// 当客户端的接收器(reciver)被创建时
+    /// </summary>
+    /// <param name="reciver">返回接收器</param>
     void Server_OnClientReciverCreated(NetworkReciver reciver);
+    /// <summary>
+    /// 当接收器被移除时
+    /// </summary>
+    /// <param name="reciver">返回接收器</param>
     void Server_OnClientReciverRemoved(NetworkReciver reciver);
+    /// <summary>
+    /// 当客户端断开
+    /// </summary>
+    /// <param name="reciver">返回接收器</param>
     void Server_OnClientDisconnected(NetworkReciver reciver);
+    /// <summary>
+    /// 当服务器关闭前
+    /// </summary>
+    /// <param name="server">返回服务器对象</param>
     void Server_BeforeDestroy(NetworkServer server);
 
+    /// <summary>
+    /// 当客户端启动时
+    /// </summary>
+    /// <param name="client">返回客户端对象</param>
     void Client_Launch(NetworkClient client);
+    /// <summary>
+    /// 当客户端销毁前
+    /// </summary>
+    /// <param name="server">返回客户端对象</param>
     void Client_BeforeDestroy(NetworkClient server);
-
+    /// <summary>
+    /// 消息输出
+    /// </summary>
+    /// <param name="msg">返回消息</param>
     void Log(string msg);
 }
 
