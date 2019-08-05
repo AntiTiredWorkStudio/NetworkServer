@@ -62,7 +62,7 @@ namespace MRServer
 
         public byte[] dataTransfer(byte[] reciveData)
         {
-            return null;
+            return NetWorkCenter.S2B("client");
         }
 
         public void Log(string msg)
@@ -131,7 +131,7 @@ namespace MRServer
 
         public byte[] dataTransfer(byte[] reciveData)
         {
-            return null;
+            return NetWorkCenter.S2B("server");
         }
 
         public void Log(string msg)

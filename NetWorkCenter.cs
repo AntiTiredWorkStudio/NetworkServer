@@ -13,6 +13,26 @@ public static class NetWorkCenter{
         NetworkInstance instance = new NetworkInstance(dAdapter);
         return instance;
     }
+
+    /// <summary>
+    /// 文本转数据
+    /// </summary>
+    /// <param name="content"></param>
+    /// <returns></returns>
+    public static byte[] S2B(string content)
+    {
+        return Encoding.UTF8.GetBytes(content);
+    }
+
+    /// <summary>
+    /// 数据转文本
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static string B2S(byte[] data)
+    {
+        return Encoding.UTF8.GetString(data);
+    }
 }
 
 public class NetworkConfig
@@ -345,20 +365,6 @@ public class NetworkServer:NetworkInstance
         }
     }
 
-    public string ShowContent()
-    {
-        string result = "";
-        foreach(NetworkReciver nrecviver in socketPool.Recivers)
-        {
-            if (nrecviver.state != InstanceState.sleep)
-            {
-                result += nrecviver.content + "/n";
-            }
-        }
-        return result;
-    }
-
-
     public string CheckReciver()
     {
         return socketPool.ReciverCount.ToString();
@@ -381,11 +387,7 @@ public class  NetworkReciver:NetworkInstance
 {
     NetworkServerSocketPool parentPool;
     public Socket rSocketInstance = null;
-    public string content = "";
-    public int runningtime = 0;
     public string connectionID;
-    public int seek = 0;
-    public int totalAviliable = 0;
 
     public NetworkReciver(string id,NetworkServerSocketPool tPool, Socket rSocket,NetworkDataAdapter dAdapter) : base(dAdapter)
     {
@@ -405,7 +407,6 @@ public class  NetworkReciver:NetworkInstance
             byte[] buffer = new byte[1024];
             // rSocketInstance = rSocketInstance.Accept();
             state = InstanceState.Reciving;
-            totalAviliable += rSocketInstance.Available;
             buffer = TryReciveDataFromSocket(rSocketInstance);
             if(buffer == null)
             {
@@ -413,27 +414,25 @@ public class  NetworkReciver:NetworkInstance
             }
 
             state = InstanceState.Recived;
-
-            string tContent = "("+ buffer.Length + ")"+ Encoding.UTF8.GetString(buffer);
-            if (tContent != null)
+            try
             {
-                dataAdapter.OnReciveString(tContent);
+                string tContent = Encoding.UTF8.GetString(buffer);
+                if (tContent != null)
+                {
+                    dataAdapter.OnReciveString(tContent);
+                }
             }
-            runningtime++;
-            content = "["+runningtime+"]"+tContent;
-           // File.WriteAllText(System.Environment.CurrentDirectory + "/reciver_log.txt", content);
-            seek++;
+            catch { }
+            byte[] senddata = dataAdapter.dataTransfer(buffer);
             state = InstanceState.Sending;
-            if (!TrySendDataBySocket(rSocketInstance, Encoding.UTF8.GetBytes(connectionID + "-"+ NetworkServerSocketPool.GenerateID()+"><" + rSocketInstance.RemoteEndPoint.ToString())))
+            if (!TrySendDataBySocket(rSocketInstance, senddata))
             {
-                content = "<END>";
                 ReleaseSelf();
                 break;
             }
             state = InstanceState.Sended;
         }
         ReleaseSelf();
-        //rSocketInstance.Shutdown(SocketShutdown.Both);
     }
 
     public override void DestroyInstance()
@@ -455,8 +454,7 @@ public class  NetworkReciver:NetworkInstance
 public class NetworkClient : NetworkInstance
 {
     public Socket clientSocket = null;
-    public int seek = 0;
-    public string reciveDatas = "empty";
+    public string reciveDatas = "enter";
     public NetworkClient(NetworkConfig config, NetworkDataAdapter dAdapter) : base(dAdapter)
     {
         Launch(config);
@@ -485,9 +483,10 @@ public class NetworkClient : NetworkInstance
         {
             try
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(NetworkServerSocketPool.GenerateID() + "-" + clientSocket.LocalEndPoint.ToString() /*System.DateTime.Now.ToLongTimeString()*/);
+                byte[] senddata = dataAdapter.dataTransfer(Encoding.UTF8.GetBytes(reciveDatas));
+               // byte[] buffer = Encoding.UTF8.GetBytes(NetworkServerSocketPool.GenerateID() + "-" + clientSocket.LocalEndPoint.ToString());
                 state = InstanceState.Sending;
-                if (!TrySendDataBySocket(clientSocket, buffer))
+                if (!TrySendDataBySocket(clientSocket, senddata))
                 {
                     continue;
                 }
@@ -495,11 +494,10 @@ public class NetworkClient : NetworkInstance
 
                 state = InstanceState.Reciving;
                 byte[] reciverBuffer = TryReciveDataFromSocket(clientSocket);
-                //dataAdapter.Log(reciveDatas.Length.ToString());
-                //dataAdapter.Log("length:"+reciveDatas.Length);
+
                 if(reciveDatas == null || reciveDatas.Length<=0)
                 {
-                    dataAdapter.Log("real");
+                    dataAdapter.Log("recive data is null");
                     continue;
                 }
                 state = InstanceState.Recived;
@@ -515,7 +513,6 @@ public class NetworkClient : NetworkInstance
                     dataAdapter.OnReciveString(reciveDatas);
                 }
                 Thread.Sleep(100);
-                seek++;
             }catch(Exception e)
             {
                 dataAdapter.Log(e.ToString());
