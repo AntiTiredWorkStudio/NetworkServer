@@ -67,7 +67,7 @@ namespace MRServer
 
         public void Client_Launch(NetworkClient client)
         {
-
+            Log("客户端启动:"+client.clientSocket.LocalEndPoint.ToString());
         }
 
         public byte[] dataTransfer(byte[] reciveData)
