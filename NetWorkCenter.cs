@@ -8,9 +8,9 @@ using System.IO;
 using System;
 
 public static class NetWorkCenter{
-    public static NetworkInstance StartInstance(NetworkDataAdapter dAdapter)
+    public static T StartInstance<T>(NetworkDataAdapter dAdapter) where T:NetworkInstance
     {
-        NetworkInstance instance = new NetworkInstance(dAdapter);
+        T instance = new NetworkInstance(dAdapter) as T;
         return instance;
     }
 
@@ -34,9 +34,27 @@ public static class NetWorkCenter{
         return Encoding.UTF8.GetString(data);
     }
 }
-
+/// <summary>
+/// 配置类
+/// </summary>
 public class NetworkConfig
 {
+    public static string GetIPAdress
+    {
+        get
+        {
+           string name = Dns.GetHostName();
+           IPAddress[] ipadrlist = Dns.GetHostAddresses(name);
+           foreach (IPAddress ipa in ipadrlist)
+           {
+                if (ipa.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork) {
+                    return ipa.ToString();
+                }
+           }
+           return "0.0.0.0";
+        }
+    }
+
     private NetworkConfig() { }
     public static NetworkConfig Instance()
     {
@@ -91,7 +109,9 @@ public class NetworkConfig
     }
     public int sendTimeOut;
 }
-
+/// <summary>
+/// 网络模块状态定义
+/// </summary>
 public enum InstanceState
 {
     launch,
@@ -113,8 +133,7 @@ public class NetworkInstance
                 throw new Exception("sender not read");
             }catch(Exception e)
             {
-                //dataAdapter.Log(e.ToString());
-                //File.WriteAllText(System.Environment.CurrentDirectory + "/error_send.txt", e.ToString());
+                dataAdapter.Log(e.ToString());
             }
             return false;
         }
@@ -185,7 +204,7 @@ public class NetworkInstance
 
     }
 
-    public T To<T>() where T : NetworkInstance
+    public T To<T>() where T :NetworkInstance
     {
         return this as T;
     }
