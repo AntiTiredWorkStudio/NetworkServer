@@ -1,4 +1,0 @@
-System.ArgumentNullException: 数组不能为空。
-参数名: bytes
-   在 System.Text.Encoding.GetString(Byte[] bytes)
-   在 NetworkClient.SendAndRecive() 位置 E:\UnityFinals\MummyRunawayServer\MRServer\MRServer\Properties\NetWorkCenter.cs:行号 375

@@ -10,7 +10,17 @@ namespace MRServer
     {
         static void Main(string[] args)
         {
-            ServerTestClass stclass = new ServerTestClass();
+            string type = Console.ReadLine();
+            if (type == "server")
+            {
+                ServerTestClass stclass = new ServerTestClass();
+            }
+
+            if (type == "client")
+            {
+                ClientTestClass clclass = new ClientTestClass();
+            }
+
             //ClientTestClass clclass = new ClientTestClass();
             while (true)
             {
@@ -47,7 +57,7 @@ namespace MRServer
 
         public void OnReciveString(string content)
         {
-            Console.WriteLine("client recive:"+content);
+            Console.WriteLine((++seek) + ". client recive:" + content);
         }
 
         public void Client_BeforeDestroy(NetworkClient server)
@@ -82,6 +92,7 @@ namespace MRServer
 
         public void Server_OnClientConnected(Socket client)
         {
+            Console.WriteLine("Client_Launch:" + client.RemoteEndPoint.ToString());
         }
 
         public void Server_OnClientDisconnected(NetworkReciver reciver)
@@ -95,9 +106,11 @@ namespace MRServer
         public void Server_OnClientReciverRemoved(NetworkReciver reciver)
         {
         }
+        public int seek = 0;
     }
 
     public class ServerTestClass : NetworkDataAdapter{
+        public int seek = 0;
         public ServerTestClass()
         {
             NetworkServer server = new NetworkServer(this);
@@ -115,8 +128,8 @@ namespace MRServer
 
         public void OnReciveString(string content)
         {
-            Console.Clear();
-            Console.WriteLine("server recive:" + content);
+            //Console.Clear();
+            Console.WriteLine((++seek)+". server recive:" + content);
         }
 
         public void Client_BeforeDestroy(NetworkClient server)
@@ -141,7 +154,7 @@ namespace MRServer
 
         public void Server_BeforeDestroy(NetworkServer server)
         {
-            throw new NotImplementedException();
+
         }
 
         public void Server_Launch(NetworkServer server)
@@ -151,11 +164,12 @@ namespace MRServer
 
         public void Server_OnClientConnected(Socket client)
         {
-            
+            Console.WriteLine("Server_OnClientConnected:" + client.RemoteEndPoint.ToString());
         }
 
         public void Server_OnClientDisconnected(NetworkReciver reciver)
         {
+            Console.WriteLine("Server_OnClientDisconnected:" + reciver.rSocketInstance.RemoteEndPoint.ToString());
         }
 
         public void Server_OnClientReciverCreated(NetworkReciver reciver)
@@ -165,6 +179,7 @@ namespace MRServer
 
         public void Server_OnClientReciverRemoved(NetworkReciver reciver)
         {
+            Console.WriteLine("Server_OnClientReciverRemoved:" + reciver.rSocketInstance.RemoteEndPoint.ToString());
         }
     }
 }

@@ -5,8 +5,11 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Text;
 using System.IO;
+using System.Linq;
 using System;
-
+/// <summary>
+/// 网络中心控制器
+/// </summary>
 public static class NetWorkCenter{
     public static T StartInstance<T>(NetworkDataAdapter dAdapter) where T:NetworkInstance
     {
@@ -121,7 +124,9 @@ public enum InstanceState
     Sending,
     Sended,
 }
-
+/// <summary>
+/// 网络对象实例
+/// </summary>
 public class NetworkInstance
 {
     public bool TrySendDataBySocket(Socket sender,byte[] datas)
@@ -160,16 +165,19 @@ public class NetworkInstance
         {
             return null;
         }
-        byte[] reciverDatas = new byte[1024];
+        byte[] reciverDatas = new byte[1024*256];
         try
         {
             int length = reciver.Receive(reciverDatas);
+            List<byte> content = new List<byte>();
+            content.AddRange(reciverDatas.Take(length));
+            reciverDatas = content.ToArray();
             if (reciverDatas == null)
             {
                 return null;
             }
-            ArraySegment<byte> segment = new ArraySegment<byte>(reciverDatas, 0, length);
-            return segment.Array;
+            //ArraySegment<byte> segment = new ArraySegment<byte>(reciverDatas, 0, length);
+            return reciverDatas;
         }
         catch(Exception e)
         {
@@ -188,7 +196,7 @@ public class NetworkInstance
         state = InstanceState.sleep;
         if (MainThread != null)
         {
-            MainThread.Abort();
+            try{MainThread.Abort();}catch(Exception e) { /*dataAdapter.Log(e.ToString());*/ }
         }
     }
 
@@ -209,6 +217,9 @@ public class NetworkInstance
         return this as T;
     }
 }
+/// <summary>
+/// 网络适配器接口
+/// </summary>
 public interface NetworkDataAdapter
 {
     /// <summary>
@@ -270,7 +281,9 @@ public interface NetworkDataAdapter
     /// <param name="msg">返回消息</param>
     void Log(string msg);
 }
-
+/// <summary>
+/// 服务器线程池
+/// </summary>
 public class NetworkServerSocketPool
 {
     public Dictionary<string, NetworkReciver> reciverList;
@@ -320,7 +333,9 @@ public class NetworkServerSocketPool
         if (reciverList.ContainsKey(id))
         {
             NetworkReciver finishedReciver = reciverList[id];
+            targetServer.dataAdapter.Server_OnClientReciverRemoved(finishedReciver);
             reciverList.Remove(id);
+            targetServer.dataAdapter.Log("keys count:"+reciverList.Keys.Count.ToString());
             //File.WriteAllText(System.Environment.CurrentDirectory + "/remove.txt", reciverList.Count.ToString());
             if (finishedReciver.state != InstanceState.sleep)
             {
@@ -423,7 +438,7 @@ public class  NetworkReciver:NetworkInstance
     {
         while (!rSocketInstance.Poll(10, SelectMode.SelectRead))
         {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = null;
             // rSocketInstance = rSocketInstance.Accept();
             state = InstanceState.Reciving;
             buffer = TryReciveDataFromSocket(rSocketInstance);
@@ -462,8 +477,9 @@ public class  NetworkReciver:NetworkInstance
 
     public void ReleaseSelf()
     {
-        DestroyInstance();
+        dataAdapter.Server_OnClientDisconnected(this);
         parentPool.RemoveSocket(connectionID);
+        DestroyInstance();
     }
 }
 
