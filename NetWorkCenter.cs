@@ -129,6 +129,12 @@ public enum InstanceState
 /// </summary>
 public class NetworkInstance
 {
+    /// <summary>
+    /// 尝试发送
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="datas"></param>
+    /// <returns></returns>
     public bool TrySendDataBySocket(Socket sender,byte[] datas)
     {
         if (sender.Poll(10, SelectMode.SelectRead))
@@ -378,7 +384,16 @@ public class NetworkServer:NetworkInstance
     {
         sReception = new Socket(config.afamily, config.stype, config.ptype);
         IPEndPoint targetEndPoint = new IPEndPoint(IPAddress.Parse(config.ipAddress), config.port);
-        sReception.Bind(targetEndPoint);
+        try
+        {
+            sReception.Bind(targetEndPoint);
+        }
+        catch (Exception e)
+        {
+            dataAdapter.Log(e.ToString());
+            sReception = null;
+            return null;
+        }
         sReception.Listen(config.backlog);
         state = InstanceState.launch;
         MainThread = new Thread(ConnectReception);

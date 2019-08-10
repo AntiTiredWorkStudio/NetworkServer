@@ -4,3 +4,8 @@ E:\UnityFinals\MummyRunawayServer\MRServer\MRServer\obj\Debug\MRServer.csprojRes
 E:\UnityFinals\MummyRunawayServer\MRServer\MRServer\obj\Debug\MRServer.csproj.CoreCompileInputs.cache
 E:\UnityFinals\MummyRunawayServer\MRServer\MRServer\obj\Debug\MRServer.exe
 E:\UnityFinals\MummyRunawayServer\MRServer\MRServer\obj\Debug\MRServer.pdb
+C:\Users\Michael Kong\Desktop\NetworkServer\obj\Debug\MRServer.exe
+C:\Users\Michael Kong\Desktop\NetworkServer\obj\Debug\MRServer.pdb
+C:\Users\Michael Kong\Desktop\NetworkServer\bin\Debug\MRServer.exe
+C:\Users\Michael Kong\Desktop\NetworkServer\bin\Debug\MRServer.pdb
+C:\Users\Michael Kong\Desktop\NetworkServer\obj\Debug\ResolveAssemblyReference.cache

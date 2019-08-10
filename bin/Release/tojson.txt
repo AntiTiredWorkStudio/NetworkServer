@@ -1,0 +1,1 @@
+{"id":"test data","type":"BaseData","tsub":"[{\"x\":10.0,\"y\":20.0,\"z\":30.0,\"id\":\"position\",\"type\":\"Vector3Data\",\"tsub\":\"[]\"}]"}

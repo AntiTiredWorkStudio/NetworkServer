@@ -3,13 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-
+using System.IO;
+using Newtonsoft.Json;
 namespace MRServer
 {
     class Program
     {
         static void Main(string[] args)
         {
+      /*      BaseData data = BaseData.Instance().Called("test data").BondNew(
+                    BaseData.Instance<Vector3Data>().Set(10.0f,20.0f,30.0f).Called("position")
+                );
+            File.WriteAllBytes(System.Environment.CurrentDirectory + "/tojson.txt", data.ToBytes());
+            */
+            string json = File.ReadAllText(System.Environment.CurrentDirectory + "/tojson.txt");
+            
+            BaseData data = BaseData.Instance(json);
+
+            //Console.WriteLine((data.sub[0]).ToString());
+
             string type = Console.ReadLine();
             if (type == "server")
             {
@@ -37,7 +49,9 @@ namespace MRServer
             Console.WriteLine("end");
         }
     }
-
+    /// <summary>
+    /// 客户端测试类
+    /// </summary>
     public class ClientTestClass : NetworkDataAdapter
     {
         public ClientTestClass()
@@ -48,7 +62,7 @@ namespace MRServer
                 AddressFamily(AddressFamily.InterNetwork).
                 SocketType(SocketType.Stream).
                 Protocol(ProtocolType.Tcp).
-                IP("192.168.1.102").
+                IP(NetworkConfig.GetIPAdress).
                 Port(8324).
                 TimeoutSend(1000).
                 TimeoutRecive(1000)
@@ -108,7 +122,9 @@ namespace MRServer
         }
         public int seek = 0;
     }
-
+    /// <summary>
+    /// 服务器测试类
+    /// </summary>
     public class ServerTestClass : NetworkDataAdapter{
         public int seek = 0;
         public ServerTestClass()
@@ -119,7 +135,7 @@ namespace MRServer
                 AddressFamily(AddressFamily.InterNetwork).
                 SocketType(SocketType.Stream).
                 Protocol(ProtocolType.Tcp).
-                IP("192.168.1.102").
+                IP(NetworkConfig.GetIPAdress).
                 Port(8324).
                 TimeoutSend(1000).
                 TimeoutRecive(1000)
