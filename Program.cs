@@ -11,14 +11,27 @@ namespace MRServer
     {
         static void Main(string[] args)
         {
+            ChatManager chatManager = new ChatManager(NetworkConfig.GetIPAdress);
+            while (chatManager.ChatMsg(Console.ReadLine())!="exit")
+            {
+                chatManager.OnReciveMsg(
+                    MsgsTransport.Instance<MsgsTransport>().
+                        Set(ChatManager.TimeStamp).
+                        Join(
+                            MsgData.Instance<MsgData>().Set(ChatManager.TimeStamp, ChatManager.TimeStamp.ToString(), "192.168.1.1")
+                            //MsgData.Instance<MsgData>().Set(ChatManager.TimeStamp,"recive msg","测试02")
+                        )
+                    );
+            }
+            return;
       /*      BaseData data = BaseData.Instance().Called("test data").BondNew(
                     BaseData.Instance<Vector3Data>().Set(10.0f,20.0f,30.0f).Called("position")
                 );
             File.WriteAllBytes(System.Environment.CurrentDirectory + "/tojson.txt", data.ToBytes());
             */
-            string json = File.ReadAllText(System.Environment.CurrentDirectory + "/tojson.txt");
+       //     string json = File.ReadAllText(System.Environment.CurrentDirectory + "/tojson.txt");
             
-            BaseData data = BaseData.Instance(json);
+        //    BaseData data = BaseData.Instance(json);
 
             //Console.WriteLine((data.sub[0]).ToString());
 

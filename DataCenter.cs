@@ -36,47 +36,26 @@ public class DataCenter
 
 
 /// <summary>
-/// 子数据模板
-/// </summary>
-public class SubData
-{
-    public string id;
-    public string type;
-    public string tsub;
-    public string tsubObject {
-        get
-        {
-            return "{" + "\"sublist\":" + tsub + "}";
-        }
-    }
-}
-public class SubDataList
-{
-    public SubData[] sublist;
-}
-/// <summary>
 /// 基本data数据
 /// </summary>
-public class BaseData
+public abstract class BaseData
 {
     public static BaseData Instance() {
-        return new BaseData();
+        return new EmptyData();
     }
     public static T Instance<T>() where T:BaseData,new(){
         T ins = new T();
         return ins;
         //return new BaseData() as T;
     }
-
-    public static BaseData Instance(string json)
+    public static T Instance<T>(string json) where T:BaseData,new()
     {
-        SubData subData = JsonConvert.DeserializeObject<SubData>(json);
-        //Console.WriteLine(subData.tsubObject);
-
-        SubDataList subDataList = JsonConvert.DeserializeObject<SubDataList>(subData.tsubObject);
-        
-        Console.WriteLine(subDataList.sublist[0].tsubObject);
-        return JsonConvert.DeserializeObject<BaseData>(json);
+        return JsonConvert.DeserializeObject<T>(json);
+    }
+    public static T Instance<T>(byte[] buff) where T : BaseData, new()
+    {
+        string json = Encoding.UTF8.GetString(buff);
+        return JsonConvert.DeserializeObject<T>(json);
     }
 
     /// <summary>
@@ -88,18 +67,20 @@ public class BaseData
     /// </summary>
     public string type = "";
     /// <summary>
-    /// 子数据
+    /// 构造函数
     /// </summary>
-    [NonSerialized]
-    public List<BaseData> sub;
+    public BaseData()
+    {
+        type = GetType().Name;
+        id = TypeDefine;
+    }
     /// <summary>
-    /// 子字符
+    /// 叫做
     /// </summary>
-    public string tsub {
-        get
-        {
-            return JsonConvert.SerializeObject(sub);
-        }
+    /// <param name="titleName"></param>
+    public BaseData Called(string titleName) {
+        id = titleName;
+        return this;
     }
     /// <summary>
     /// 转换为byte的方法
@@ -110,47 +91,29 @@ public class BaseData
         string sources = ToString();
         return Encoding.UTF8.GetBytes(sources);
     }
-
     /// <summary>
-    /// 叫做
+    /// 转换为字符串
     /// </summary>
-    /// <param name="titleName"></param>
-    public BaseData Called(string titleName) {
-        id = titleName;
-        return this;
-    }
-
-    public BaseData BondNew(params BaseData[] targets){
-        if (sub == null) { 
-            sub = new List<BaseData>();
-        }
-        foreach (BaseData target in targets)
-        {
-            sub.Add(target);
-        }
-        return this;
-    }
-
-    public BaseData()
-    {
-        type = GetType().Name;
-        try
-        {
-            if (sub == null)
-            {
-                sub = new List<BaseData>();
-            }
-            id = "base data";
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("error:"+e.ToString());
-        }
-        
-    }
+    /// <returns></returns>
     public override string ToString()
     {
         return JsonConvert.SerializeObject(this);
+    }
+    /// <summary>
+    /// id定义
+    /// </summary>
+    public abstract string IdDefine { get; }
+    /// <summary>
+    /// 定义类型
+    /// </summary>
+    public abstract string TypeDefine { get; }
+    /// <summary>
+    ///  类型转换
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public T As<T>() where T:BaseData{
+        return this as T;
     }
     //public abstract BaseData Setting(params object[] pars);
 }
@@ -166,7 +129,15 @@ public class EmptyData : BaseData
         id = "empty";
         text = "empty data";
     }
+    public override string TypeDefine
+    {
+        get { return "empty"; }
+    }
 
+    public override string IdDefine
+    {
+        get { return "empty"; }
+    }
 }
 
 
@@ -175,11 +146,15 @@ public class Vector3Data : BaseData {
     public float x;
     public float y;
     public float z;
-    public Vector3Data()
+    public Vector3Data():base()
     {
         x = 0.0f;
         y = 0.0f;
         z = 0.0f;
+    }
+    public override string TypeDefine
+    {
+        get { return "vector3"; }
     }
     /// <summary>
     /// 设置
@@ -193,5 +168,138 @@ public class Vector3Data : BaseData {
         y = _y;
         z = _z;
         return this;
+    }
+
+    public override string IdDefine
+    {
+        get { return "vector"; }
+    }
+}
+
+/*
+/// <summary>
+/// 数据包承载容器
+/// </summary>
+public class MsgsTransport<T> : BaseData
+{
+    public Int64 timestamp = 0;
+    public List<T> msglist;
+    public override string IdDefine
+    {
+        get { return "msgs"; }
+    }
+
+    public override string TypeDefine
+    {
+        get { return "msgs"; }
+    }
+    public MsgsTransport Set(List<T> msgs, Int64 _timeStamp)
+    {
+        msglist = msgs;
+        timestamp = _timeStamp;
+        return this;
+    }
+
+    public bool IsNull
+    {
+        get
+        {
+            return msglist == null || msglist.Count == 0;
+        }
+    }
+
+    public MsgsTransport<T> Join(params T[] msgs)
+    {
+        foreach (T data in msgs)
+        {
+            msglist.Add(data);
+        }
+        return this<T>;
+    }
+}*/
+
+
+
+/// <summary>
+/// 收到的消息列表
+/// </summary>
+public class MsgsTransport : BaseData
+{
+    public Int64 timestamp = 0;
+    public List<MsgData> msglist;
+    public override string IdDefine
+    {
+        get { return "msgs"; }
+    }
+
+    public override string TypeDefine
+    {
+        get { return "msgs"; }
+    }
+    public MsgsTransport Set(List<MsgData> msgs,Int64 _timeStamp)
+    {
+        msglist = msgs;
+        timestamp = _timeStamp;
+        return this;
+    }
+    public MsgsTransport Set(Int64 _timeStamp)
+    {
+        if (msglist == null)
+        {
+            msglist = new List<MsgData>();
+        }
+        timestamp = _timeStamp;
+        return this;
+    }
+    
+
+    public bool IsNull {
+        get
+        {
+            return msglist == null || msglist.Count == 0;
+        }
+    }
+
+    public MsgsTransport Join(params MsgData[] msgs) {
+        if (msglist == null) {
+            msglist = new List<MsgData>();
+        }
+        foreach (MsgData data in msgs)
+        {
+            msglist.Add(data);
+        }
+        return this;
+    }
+}
+
+/// <summary>
+/// 发送的消息
+/// </summary>
+public class MsgData : BaseData
+{
+    public Int64 timestamp = 0;
+    public string msg = "";
+    public string user = "";
+    public override string TypeDefine
+    {
+        get { return "msg"; }
+    }
+    /// <summary>
+    /// 设置参数
+    /// </summary>
+    /// <param name="_time"></param>
+    /// <param name="_msg"></param>
+    /// <param name="_user"></param>
+    public MsgData Set(Int64 _time, string _msg, string _user)
+    {
+        timestamp = _time;
+        msg = _msg;
+        user = _user;
+        return this;
+    }
+
+    public override string IdDefine
+    {
+        get { return "msg"; }
     }
 }
