@@ -117,8 +117,8 @@ public class NetworkConfig
 /// </summary>
 public enum InstanceState
 {
-    launch,
     sleep,
+    launch,
     Reciving,
     Recived,
     Sending,
@@ -149,6 +149,7 @@ public class NetworkInstance
             return false;
         }
         sender.Send(datas);
+        dataAdapter.OnSended(datas);
         return true;
     }
 
@@ -206,7 +207,7 @@ public class NetworkInstance
         }
     }
 
-    public virtual NetworkInstance Launch(NetworkConfig config) { dataConfig = config; return this; }
+    public virtual NetworkInstance Launch(NetworkConfig config){state = InstanceState.launch; dataConfig = config; return this; }
 
     public NetworkInstance(NetworkDataAdapter dAdapter)
     {
@@ -239,6 +240,11 @@ public interface NetworkDataAdapter
     /// </summary>
     /// <param name="content">转为字符串</param>
     void OnReciveString(string content);
+
+    /// <summary>
+    /// 发送成功时回调
+    /// </summary>
+    void OnSended(byte[] sended);
 
     /// <summary>
     /// 当服务器启动时
@@ -395,12 +401,12 @@ public class NetworkServer:NetworkInstance
             return null;
         }
         sReception.Listen(config.backlog);
-        state = InstanceState.launch;
+        NetworkInstance current = base.Launch(config);
         MainThread = new Thread(ConnectReception);
         MainThread.Start();
         socketPool = new NetworkServerSocketPool(this);
         dataAdapter.Server_Launch(this);
-        return base.Launch(config);
+        return current;
     }
 
     public void ConnectReception()
@@ -517,7 +523,14 @@ public class NetworkClient : NetworkInstance
         //设定服务器IP地址  
         IPEndPoint targetEndPoint = new IPEndPoint(IPAddress.Parse(config.ipAddress), config.port);
         clientSocket = new Socket(config.afamily, config.stype, config.ptype);
-        clientSocket.Connect(targetEndPoint); //配置服务器IP与端口  
+        try
+        {
+            clientSocket.Connect(targetEndPoint); //配置服务器IP与端口  
+        }catch(Exception e)
+        {
+            dataAdapter.Log(e.ToString());
+            return this;
+        }
         MainThread = new Thread(SendAndRecive);
         MainThread.Start();
         clientSocket.SendTimeout = config.sendTimeOut;

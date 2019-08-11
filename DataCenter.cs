@@ -50,7 +50,15 @@ public abstract class BaseData
     }
     public static T Instance<T>(string json) where T:BaseData,new()
     {
-        return JsonConvert.DeserializeObject<T>(json);
+        try
+        {
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+        catch
+        {
+            Console.WriteLine(json);
+            return new T();
+        }
     }
     public static T Instance<T>(byte[] buff) where T : BaseData, new()
     {

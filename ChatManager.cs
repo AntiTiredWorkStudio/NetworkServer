@@ -88,6 +88,10 @@ class ChatManager
         }
         foreach (MsgData data in msgTrans.msglist)
         {
+            if(data.msg == "nan")
+            {
+                continue;
+            }
             if (MsgList.ContainsKey(data.timestamp)) {
                 Console.WriteLine("键值重复:"+data.timestamp);
                 throw new Exception("简直重复");
@@ -125,10 +129,14 @@ class ChatManager
     /// <param name="isServer">是否为服务器</param>
     /// <param name="reciverUser">服务器根据用户创建</param>
     /// <returns></returns>
-    public MsgsTransport GetSendMsgs(bool isServer=false,string reciverUser = "")
-    { 
-        List<MsgData> sendDatas = new List<MsgData>(MsgList.Values.Where(x => x.timestamp > sendTimeLine && ((!isServer && x.user==user) || (isServer && x.user != reciverUser))));
+    public MsgsTransport GetSendMsgs(bool isServer = false, string reciverUser = "")
+    {
+        List<MsgData> sendDatas = new List<MsgData>(MsgList.Values.Where(x => x.timestamp > sendTimeLine && ((!isServer && x.user == user) || (isServer && x.user != reciverUser))));
         Int64 currentTime = ChatManager.TimeStamp;
+        if (sendDatas.Count == 0)
+        {
+            sendDatas.Add(BaseData.Instance<MsgData>().Set(currentTime,"nan",user));
+        }
         MsgsTransport transport = BaseData.Instance<MsgsTransport>().Set(sendDatas, currentTime).Called("trans_" + ChatManager.TimeStamp.ToString()).As<MsgsTransport>();
         MsgTransportList.Add(transport.id, transport);
         return transport;
