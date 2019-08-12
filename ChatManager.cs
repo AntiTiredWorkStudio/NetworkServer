@@ -45,7 +45,7 @@ class ChatManager
     /// </summary>
     public void ShowMsg()
     {
-        Console.Clear();
+        //Console.Clear();
         foreach (Int64 key in MsgList.Keys)
         {
             if (MsgList[key].user != user)
