@@ -119,7 +119,8 @@ class ChatNetAdapter : NetworkDataAdapter
                 TimeoutSend(1000).
                 TimeoutRecive(1000)
             ).state;
-        chatManager.user = netClient.clientSocket.LocalEndPoint.ToString();
+        if(netClient.state == InstanceState.launch)
+            chatManager.user = netClient.clientSocket.LocalEndPoint.ToString();
         Console.WriteLine((state == InstanceState.launch)?"启动成功":"启动失败");
     }
     public void Client_BeforeDestroy(NetworkClient server)
