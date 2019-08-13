@@ -136,7 +136,13 @@ class ChatManager
         List<MsgData> sendDatas = null;
         if (isServer)
         {
-            sendDatas = new List<MsgData>(MsgList.Values.Where(x => /*x.timestamp > sendTimeLine &&*/ ((!isServer && x.user == user) || (isServer && x.user != reciverUser))));
+            List<MsgData> reciverUserData = new List<MsgData>(MsgList.Values.Where(x => (x.user == reciverUser)));
+            Int64 reciveUserTimeStamp = 0;
+            if (reciverUserData.Count > 0)
+            {
+               reciveUserTimeStamp = reciverUserData[0].timestamp;
+            }
+            sendDatas = new List<MsgData>(MsgList.Values.Where(x => x.timestamp > reciveUserTimeStamp && ((!isServer && x.user == user) || (isServer && x.user != reciverUser))));
         }
         else
         {
