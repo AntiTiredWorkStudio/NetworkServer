@@ -12,9 +12,18 @@ namespace MRServer
         static void OnServer()
         {
             ChatNetAdapterServer NetAdapter = new ChatNetAdapterServer();
-            while (NetAdapter.chatNetAdapter.chatManager.ChatMsg(Console.ReadLine()) != "exit")
+            string command = "";
+            while ((command = Console.ReadLine()) != "exit")
             {
-
+                if (command == "view")
+                {
+                    string all = "|";
+                    foreach (MsgData data in NetAdapter.serverChatManager.MsgList.Values)
+                    {
+                        all += " "+data.msg + " |";
+                    }
+                    Console.WriteLine(all);
+                }
             }
         }
         static void OnClient()

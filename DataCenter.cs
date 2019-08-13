@@ -264,7 +264,7 @@ public class MsgsTransport : BaseData
     public bool IsNull {
         get
         {
-            return msglist == null || msglist.Count == 0;
+            return msglist == null || msglist.Count == 0 || msglist[0].msg == "nan";
         }
     }
 

@@ -163,10 +163,10 @@ public class NetworkInstance
             }
             catch (Exception e)
             {
-               // dataAdapter.Log(e.ToString());
-                //File.WriteAllText(System.Environment.CurrentDirectory + "/error_recive.txt", e.ToString());
+                // dataAdapter.Log(e.ToString());
+                File.WriteAllText(System.Environment.CurrentDirectory + "/error_recive.txt", e.ToString());
             }
-            return new byte[0];
+//            return new byte[0];
         }
         if(reciver == null)
         {
@@ -338,6 +338,11 @@ public class NetworkServerSocketPool
         NetworkReciver tReciver = new NetworkReciver(connectionID, this, clientSocket, targetServer.dataAdapter);
         reciverList.Add(connectionID, tReciver);
         targetServer.dataAdapter.Server_OnClientReciverCreated(tReciver);
+        string content = "";
+        foreach(string key in reciverList.Keys){
+            content += key + "|" + reciverList[key] + ";";
+        }
+        File.WriteAllText("sockets.txt", content);
     }
 
     public void RemoveSocket(string id)
@@ -457,36 +462,68 @@ public class  NetworkReciver:NetworkInstance
 
     protected void ReciveAndSend()
     {
+        //Thread.Sleep(1000);
+        int failedTimes = 0;
+        while (rSocketInstance.Poll(10, SelectMode.SelectRead)) {
+            if (failedTimes++ > 5000)
+            {
+                break;
+            }
+            else
+            {
+                dataAdapter.Log("连接失败:"+failedTimes);
+            }
+            Thread.Sleep(10);
+        }
+        //Console.WriteLine("链接通过");
+        int rightTimes = 0;
         while (!rSocketInstance.Poll(10, SelectMode.SelectRead))
         {
+            //Console.WriteLine("正确链接次数:" + (++rightTimes));
             byte[] buffer = null;
             // rSocketInstance = rSocketInstance.Accept();
             state = InstanceState.Reciving;
             buffer = TryReciveDataFromSocket(rSocketInstance);
-            if(buffer == null)
+            if (buffer == null)
             {
+                //Thread.Sleep(4000);
+          //      Console.WriteLine("buffer is null");
+                //continue;
+                dataAdapter.Log("接收到的数据为空");
                 continue;
             }
-
-            state = InstanceState.Recived;
-            try
+            else
             {
-                string tContent = Encoding.UTF8.GetString(buffer);
-                if (tContent != null)
+
+                state = InstanceState.Recived;
+                try
                 {
-                    dataAdapter.OnReciveString(tContent);
+                    string tContent = Encoding.UTF8.GetString(buffer);
+                    if (tContent != null)
+                    {
+                        dataAdapter.OnReciveString(tContent);
+                    }
                 }
+                catch { }
             }
-            catch { }
+
             byte[] senddata = dataAdapter.dataTransfer(buffer);
             state = InstanceState.Sending;
-            if (!TrySendDataBySocket(rSocketInstance, senddata))
+            int sendTimes = 0;
+            //Console.WriteLine("try send:"+Encoding.UTF8.GetString(senddata));
+            while (!TrySendDataBySocket(rSocketInstance, senddata))
             {
-                ReleaseSelf();
-                break;
+                dataAdapter.Log("发送失败:" + sendTimes);
+                if (sendTimes++ > 50)
+                {
+                    dataAdapter.Log("发送失败次数过多,中断线程:"+rSocketInstance.RemoteEndPoint.ToString());
+                    ReleaseSelf();
+                    break;
+                }
             }
             state = InstanceState.Sended;
         }
+
         ReleaseSelf();
     }
 
@@ -541,7 +578,7 @@ public class NetworkClient : NetworkInstance
 
     public void SendAndRecive()
     {
-        Thread.Sleep(1000);//延迟1秒进行长链，等待服务器线程创建完毕
+       // Thread.Sleep(1000);//延迟1秒进行长链，等待服务器线程创建完毕
         while (!clientSocket.Poll(10,SelectMode.SelectRead))
         {
             try
@@ -551,6 +588,7 @@ public class NetworkClient : NetworkInstance
                 state = InstanceState.Sending;
                 if (!TrySendDataBySocket(clientSocket, senddata))
                 {
+                    //File.WriteAllText(System.Environment.CurrentDirectory+"/client.txt","Client dead");
                     continue;
                 }
                 state = InstanceState.Sended;

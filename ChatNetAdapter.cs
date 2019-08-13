@@ -7,7 +7,7 @@ class ChatNetAdapterServer : NetworkDataAdapter
 {
     public NetworkServer netServer;
     public ChatManager serverChatManager;
-    public ChatNetAdapter chatNetAdapter;
+    //public ChatNetAdapter chatNetAdapter;
 
     public ChatNetAdapterServer()
     {
@@ -21,12 +21,13 @@ class ChatNetAdapterServer : NetworkDataAdapter
                 Protocol(ProtocolType.Tcp).
                 IP(NetworkConfig.GetIPAdress).
                 Port(8324).
-                TimeoutSend(1000).
-                TimeoutRecive(1000)
+                TimeoutSend(100000).
+                TimeoutRecive(100000).
+                BackLog(100)
             ).state;
         Console.WriteLine((state == InstanceState.launch) ? "启动成功,本机IP:"+netServer.sReception.LocalEndPoint.ToString() : "启动失败");
 
-        chatNetAdapter = new ChatNetAdapter();
+        //chatNetAdapter = new ChatNetAdapter();
     }
     public void Client_BeforeDestroy(NetworkClient server)
     {
@@ -40,13 +41,20 @@ class ChatNetAdapterServer : NetworkDataAdapter
 
     public void OnSended(byte[] sended)
     {
-
+        string json = Encoding.UTF8.GetString(sended);
+        MsgsTransport transport = BaseData.Instance<MsgsTransport>(json);
+        serverChatManager.OnSendFinished(transport.id);
     }
 
     public byte[] dataTransfer(byte[] reciveData)
     {
+        if (reciveData == null)
+        {
+            return null;
+        }
         string json = Encoding.UTF8.GetString(reciveData);
         MsgsTransport trans = BaseData.Instance<MsgsTransport>(json);
+       
         serverChatManager.OnReciveMsg(trans);
         return serverChatManager.GetSendMsgs(true, trans.msglist[0].user).ToBytes();
     }
@@ -58,7 +66,7 @@ class ChatNetAdapterServer : NetworkDataAdapter
 
     public void OnReciveString(string content)
     {
-
+        //Console.WriteLine(content);
     }
 
     public void Server_BeforeDestroy(NetworkServer server)
@@ -68,17 +76,17 @@ class ChatNetAdapterServer : NetworkDataAdapter
 
     public void Server_Launch(NetworkServer server)
     {
-
+        //Console.WriteLine(ChatManager.TimeStamp);
     }
 
     public void Server_OnClientConnected(Socket client)
     {
-
+        Console.WriteLine("客户加入:"+client.RemoteEndPoint.ToString());
     }
 
     public void Server_OnClientDisconnected(NetworkReciver reciver)
     {
-
+        Console.WriteLine("客户离开:" + reciver.rSocketInstance.RemoteEndPoint.ToString());
     }
 
     public void Server_OnClientReciverCreated(NetworkReciver reciver)
@@ -116,7 +124,7 @@ class ChatNetAdapter : NetworkDataAdapter
     }
     public void Client_BeforeDestroy(NetworkClient server)
     {
-
+        Console.WriteLine("客户端关闭");
     }
 
     public void OnSended(byte[] sended)
@@ -147,6 +155,7 @@ class ChatNetAdapter : NetworkDataAdapter
 
     public void OnReciveString(string content)
     {
+       // Console.WriteLine(content);
     }
 
     public void Server_BeforeDestroy(NetworkServer server)

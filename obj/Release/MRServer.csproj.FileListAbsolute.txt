@@ -1,6 +1,6 @@
 C:\Users\Michael Kong\Desktop\NetworkServer\bin\Release\MRServer.exe
 C:\Users\Michael Kong\Desktop\NetworkServer\bin\Release\MRServer.pdb
+C:\Users\Michael Kong\Desktop\NetworkServer\bin\Release\Newtonsoft.Json.dll
 C:\Users\Michael Kong\Desktop\NetworkServer\obj\Release\ResolveAssemblyReference.cache
 C:\Users\Michael Kong\Desktop\NetworkServer\obj\Release\MRServer.exe
 C:\Users\Michael Kong\Desktop\NetworkServer\obj\Release\MRServer.pdb
-C:\Users\Michael Kong\Desktop\NetworkServer\bin\Release\Newtonsoft.Json.dll

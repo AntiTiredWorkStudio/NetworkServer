@@ -45,7 +45,7 @@ class ChatManager
     /// </summary>
     public void ShowMsg()
     {
-        //Console.Clear();
+        Console.Clear();
         foreach (Int64 key in MsgList.Keys)
         {
             if (MsgList[key].user != user)
@@ -83,23 +83,25 @@ class ChatManager
     /// </summary>
     /// <param name="msgTrans"></param>
     public void OnReciveMsg(MsgsTransport msgTrans) {
-        if (msgTrans.IsNull) {
+
+        if (msgTrans== null || msgTrans.IsNull)
+        {
             return;
         }
+        //Console.WriteLine("recive:" + msgTrans.ToString());
+        int count = 0;
         foreach (MsgData data in msgTrans.msglist)
         {
-            if(data.msg == "nan")
-            {
-                continue;
-            }
             if (MsgList.ContainsKey(data.timestamp)) {
-                Console.WriteLine("键值重复:"+data.timestamp);
-                throw new Exception("简直重复");
+                //Console.WriteLine("键值重复:"+data.timestamp);
+              //  throw new Exception("键值重复:" + data.timestamp);
                 continue;
             }
             MsgList.Add(data.timestamp, data);
+            count++;
         }
         MsgList.OrderBy(x => x.Key);
+        if (count > 0)
         ShowMsg();
     }
 
@@ -130,14 +132,24 @@ class ChatManager
     /// <param name="reciverUser">服务器根据用户创建</param>
     /// <returns></returns>
     public MsgsTransport GetSendMsgs(bool isServer = false, string reciverUser = "")
-    {
-        List<MsgData> sendDatas = new List<MsgData>(MsgList.Values.Where(x => x.timestamp > sendTimeLine && ((!isServer && x.user == user) || (isServer && x.user != reciverUser))));
+    { 
+        List<MsgData> sendDatas = null;
+        if (isServer)
+        {
+            sendDatas = new List<MsgData>(MsgList.Values.Where(x => /*x.timestamp > sendTimeLine &&*/ ((!isServer && x.user == user) || (isServer && x.user != reciverUser))));
+        }
+        else
+        {
+            sendDatas = new List<MsgData>(MsgList.Values.Where(x => x.timestamp > sendTimeLine && ((!isServer && x.user == user) || (isServer && x.user != reciverUser))));
+        }
+    
         Int64 currentTime = ChatManager.TimeStamp;
         if (sendDatas.Count == 0)
         {
             sendDatas.Add(BaseData.Instance<MsgData>().Set(currentTime,"nan",user));
         }
-        MsgsTransport transport = BaseData.Instance<MsgsTransport>().Set(sendDatas, currentTime).Called("trans_" + ChatManager.TimeStamp.ToString()).As<MsgsTransport>();
+        string sendTransportId = (isServer ? "s2c_" : "c2s_") + (isServer ? reciverUser : user) + "_" + ChatManager.TimeStamp.ToString();
+        MsgsTransport transport = BaseData.Instance<MsgsTransport>().Set(sendDatas, currentTime).Called(sendTransportId).As<MsgsTransport>();
         MsgTransportList.Add(transport.id, transport);
         return transport;
     }
@@ -152,6 +164,8 @@ class ChatManager
         {
             return;
         }
-        sendTimeLine = MsgTransportList[transportKey].timestamp;
+        sendTimeLine = MsgTransportList[transportKey].msglist.Max(x=>x.timestamp);
+        //if(!MsgTransportList[transportKey].IsNull)
+        //Console.WriteLine("send finished:" + sendTimeLine);
     }
 }
