@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 /// <summary>
 /// 客户端测试类
 /// </summary>
-public class ClientTestClass : NetworkDataAdapter
+public class ClientTestClass : Handles_NetworkClientAdapter
 {
     public ClientTestClass()
     {
@@ -55,40 +55,13 @@ public class ClientTestClass : NetworkDataAdapter
     {
         Console.WriteLine("Log:" + msg);
     }
-
-    public void Server_BeforeDestroy(NetworkServer server)
-    {
-
-    }
-
-    public void Server_Launch(NetworkServer server)
-    {
-
-    }
-
-    public void Server_OnClientConnected(Socket client)
-    {
-        Console.WriteLine("Client_Launch:" + client.RemoteEndPoint.ToString());
-    }
-
-    public void Server_OnClientDisconnected(NetworkReciver reciver)
-    {
-    }
-
-    public void Server_OnClientReciverCreated(NetworkReciver reciver)
-    {
-    }
-
-    public void Server_OnClientReciverRemoved(NetworkReciver reciver)
-    {
-    }
     public int seek = 0;
 }
 
 /// <summary>
 /// 服务器测试类
 /// </summary>
-public class ServerTestClass : NetworkDataAdapter
+public class ServerTestClass : Handles_NetworkServerAdapter
 {
     public int seek = 0;
     public ServerTestClass()
@@ -112,17 +85,7 @@ public class ServerTestClass : NetworkDataAdapter
         Console.WriteLine((++seek) + ". server recive:" + content);
     }
 
-    public void Client_BeforeDestroy(NetworkClient server)
-    {
-
-    }
-
     public void OnSended(byte[] sended)
-    {
-
-    }
-
-    public void Client_Launch(NetworkClient client)
     {
 
     }

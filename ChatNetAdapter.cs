@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-class ChatNetAdapterServer : NetworkDataAdapter
+class ChatNetAdapterServer : Handles_NetworkServerAdapter
 {
     public NetworkServer netServer;
     public ChatManager serverChatManager;
@@ -29,15 +29,7 @@ class ChatNetAdapterServer : NetworkDataAdapter
 
         //chatNetAdapter = new ChatNetAdapter();
     }
-    public void Client_BeforeDestroy(NetworkClient server)
-    {
-
-    }
-
-    public void Client_Launch(NetworkClient client)
-    {
-
-    }
+    
 
     public void OnSended(byte[] sended)
     {
@@ -100,7 +92,7 @@ class ChatNetAdapterServer : NetworkDataAdapter
     }
 }
 
-class ChatNetAdapter : NetworkDataAdapter
+class ChatNetAdapter : Handles_NetworkClientAdapter
 {
     public NetworkClient netClient;
     public ChatManager chatManager;
@@ -157,29 +149,5 @@ class ChatNetAdapter : NetworkDataAdapter
     public void OnReciveString(string content)
     {
        // Console.WriteLine(content);
-    }
-
-    public void Server_BeforeDestroy(NetworkServer server)
-    {
-    }
-
-    public void Server_Launch(NetworkServer server)
-    {
-    }
-
-    public void Server_OnClientConnected(Socket client)
-    {
-    }
-
-    public void Server_OnClientDisconnected(NetworkReciver reciver)
-    {
-    }
-
-    public void Server_OnClientReciverCreated(NetworkReciver reciver)
-    {
-    }
-
-    public void Server_OnClientReciverRemoved(NetworkReciver reciver)
-    {
     }
 }

@@ -8,10 +8,87 @@ using System.IO;
 using System.Linq;
 using System;
 /// <summary>
+/// 网络适配器接口公用部分
+/// </summary>
+public interface Handles_NetworkDataAdapter
+{
+    /// <summary>
+    /// 数据转换反馈,收到数据需反序列化,反馈到的数据需序列化
+    /// </summary>
+    /// <param name="reciveData">接收到的数据</param>
+    /// <returns>需要反馈给服务器的数据</returns>
+    byte[] dataTransfer(byte[] reciveData);
+    /// <summary>
+    /// 当收到的数据可被转换为字符串时
+    /// </summary>
+    /// <param name="content">转为字符串</param>
+    void OnReciveString(string content);
+    /// <summary>
+    /// 发送成功时回调
+    /// </summary>
+    void OnSended(byte[] sended);
+    /// <summary>
+    /// 消息输出
+    /// </summary>
+    /// <param name="msg">返回消息</param>
+    void Log(string msg);
+}
+/// <summary>
+/// 网络适配器接口服务器部分
+/// </summary>
+public interface Handles_NetworkServerAdapter : Handles_NetworkDataAdapter
+{ /// <summary>
+  /// 当服务器启动时
+  /// </summary>
+  /// <param name="server">返回服务器对象</param>
+    void Server_Launch(NetworkServer server);
+    /// <summary>
+    /// 当检测到客户端连接时
+    /// </summary>
+    /// <param name="client">返回客户端socket</param>
+    void Server_OnClientConnected(Socket client);
+    /// <summary>
+    /// 当客户端的接收器(reciver)被创建时
+    /// </summary>
+    /// <param name="reciver">返回接收器</param>
+    void Server_OnClientReciverCreated(NetworkReciver reciver);
+    /// <summary>
+    /// 当接收器被移除时
+    /// </summary>
+    /// <param name="reciver">返回接收器</param>
+    void Server_OnClientReciverRemoved(NetworkReciver reciver);
+    /// <summary>
+    /// 当客户端断开
+    /// </summary>
+    /// <param name="reciver">返回接收器</param>
+    void Server_OnClientDisconnected(NetworkReciver reciver);
+    /// <summary>
+    /// 当服务器关闭前
+    /// </summary>
+    /// <param name="server">返回服务器对象</param>
+    void Server_BeforeDestroy(NetworkServer server);
+}
+/// <summary>
+/// 网络适配器接口客户端部分
+/// </summary>
+public interface Handles_NetworkClientAdapter : Handles_NetworkDataAdapter
+{
+    /// <summary>
+    /// 当客户端启动时
+    /// </summary>
+    /// <param name="client">返回客户端对象</param>
+    void Client_Launch(NetworkClient client);
+    /// <summary>
+    /// 当客户端销毁前
+    /// </summary>
+    /// <param name="server">返回客户端对象</param>
+    void Client_BeforeDestroy(NetworkClient server);
+}
+/// <summary>
 /// 网络中心控制器
 /// </summary>
 public static class NetWorkCenter{
-    public static T StartInstance<T>(NetworkDataAdapter dAdapter) where T:NetworkInstance
+    public static T StartInstance<T>(Handles_NetworkDataAdapter dAdapter) where T:NetworkInstance
     {
         T instance = new NetworkInstance(dAdapter) as T;
         return instance;
@@ -194,7 +271,7 @@ public class NetworkInstance
     }
 
     public NetworkConfig dataConfig;
-    public NetworkDataAdapter dataAdapter;
+    public Handles_NetworkDataAdapter dataAdapter;
     public InstanceState state;
     protected Thread MainThread = null;
 
@@ -209,7 +286,7 @@ public class NetworkInstance
 
     public virtual NetworkInstance Launch(NetworkConfig config){state = InstanceState.launch; dataConfig = config; return this; }
 
-    public NetworkInstance(NetworkDataAdapter dAdapter)
+    public NetworkInstance(Handles_NetworkDataAdapter dAdapter)
     {
         dataAdapter = dAdapter;
     }
@@ -218,81 +295,26 @@ public class NetworkInstance
     {
 
     }
-
+    /// <summary>
+    /// 网络实例类型转换
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public T To<T>() where T :NetworkInstance
     {
         return this as T;
     }
+    /// <summary>
+    /// 适配器类型转换
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public T AdapterAs<T>() where T : Handles_NetworkDataAdapter
+    {
+        return (T)dataAdapter;
+    }
 }
-/// <summary>
-/// 网络适配器接口
-/// </summary>
-public interface NetworkDataAdapter
-{
-    /// <summary>
-    /// 数据转换反馈,收到数据需反序列化,反馈到的数据需序列化
-    /// </summary>
-    /// <param name="reciveData">接收到的数据</param>
-    /// <returns>需要反馈给服务器的数据</returns>
-    byte[] dataTransfer(byte[] reciveData);
-    /// <summary>
-    /// 当收到的数据可被转换为字符串时
-    /// </summary>
-    /// <param name="content">转为字符串</param>
-    void OnReciveString(string content);
 
-    /// <summary>
-    /// 发送成功时回调
-    /// </summary>
-    void OnSended(byte[] sended);
-
-    /// <summary>
-    /// 当服务器启动时
-    /// </summary>
-    /// <param name="server">返回服务器对象</param>
-    void Server_Launch(NetworkServer server);
-    /// <summary>
-    /// 当检测到客户端连接时
-    /// </summary>
-    /// <param name="client">返回客户端socket</param>
-    void Server_OnClientConnected(Socket client);
-    /// <summary>
-    /// 当客户端的接收器(reciver)被创建时
-    /// </summary>
-    /// <param name="reciver">返回接收器</param>
-    void Server_OnClientReciverCreated(NetworkReciver reciver);
-    /// <summary>
-    /// 当接收器被移除时
-    /// </summary>
-    /// <param name="reciver">返回接收器</param>
-    void Server_OnClientReciverRemoved(NetworkReciver reciver);
-    /// <summary>
-    /// 当客户端断开
-    /// </summary>
-    /// <param name="reciver">返回接收器</param>
-    void Server_OnClientDisconnected(NetworkReciver reciver);
-    /// <summary>
-    /// 当服务器关闭前
-    /// </summary>
-    /// <param name="server">返回服务器对象</param>
-    void Server_BeforeDestroy(NetworkServer server);
-
-    /// <summary>
-    /// 当客户端启动时
-    /// </summary>
-    /// <param name="client">返回客户端对象</param>
-    void Client_Launch(NetworkClient client);
-    /// <summary>
-    /// 当客户端销毁前
-    /// </summary>
-    /// <param name="server">返回客户端对象</param>
-    void Client_BeforeDestroy(NetworkClient server);
-    /// <summary>
-    /// 消息输出
-    /// </summary>
-    /// <param name="msg">返回消息</param>
-    void Log(string msg);
-}
 /// <summary>
 /// 服务器线程池
 /// </summary>
@@ -335,9 +357,9 @@ public class NetworkServerSocketPool
         {
             connectionID = (int.Parse(connectionID)+1).ToString();
         }
-        NetworkReciver tReciver = new NetworkReciver(connectionID, this, clientSocket, targetServer.dataAdapter);
+        NetworkReciver tReciver = new NetworkReciver(connectionID, this, clientSocket, targetServer.AdapterAs<Handles_NetworkServerAdapter>());
         reciverList.Add(connectionID, tReciver);
-        targetServer.dataAdapter.Server_OnClientReciverCreated(tReciver);
+        targetServer.AdapterAs<Handles_NetworkServerAdapter>().Server_OnClientReciverCreated(tReciver);
         string content = "";
         foreach(string key in reciverList.Keys){
             content += key + "|" + reciverList[key] + ";";
@@ -350,7 +372,7 @@ public class NetworkServerSocketPool
         if (reciverList.ContainsKey(id))
         {
             NetworkReciver finishedReciver = reciverList[id];
-            targetServer.dataAdapter.Server_OnClientReciverRemoved(finishedReciver);
+            targetServer.AdapterAs<Handles_NetworkServerAdapter>().Server_OnClientReciverRemoved(finishedReciver);
             reciverList.Remove(id);
             targetServer.dataAdapter.Log("keys count:"+reciverList.Keys.Count.ToString());
             //File.WriteAllText(System.Environment.CurrentDirectory + "/remove.txt", reciverList.Count.ToString());
@@ -384,12 +406,12 @@ public class NetworkServer:NetworkInstance
 
     public NetworkServerSocketPool socketPool;
 
-    public NetworkServer(NetworkConfig config, NetworkDataAdapter dAdapter):base(dAdapter)
+    public NetworkServer(NetworkConfig config, Handles_NetworkServerAdapter dAdapter):base(dAdapter)
     {
         Launch(config);
     }
 
-    public NetworkServer(NetworkDataAdapter dAdapter) : base(dAdapter) { }
+    public NetworkServer(Handles_NetworkServerAdapter dAdapter) : base(dAdapter) { }
 
     public override NetworkInstance Launch(NetworkConfig config)
     {
@@ -410,7 +432,7 @@ public class NetworkServer:NetworkInstance
         MainThread = new Thread(ConnectReception);
         MainThread.Start();
         socketPool = new NetworkServerSocketPool(this);
-        dataAdapter.Server_Launch(this);
+        AdapterAs<Handles_NetworkServerAdapter>().Server_Launch(this);
         return current;
     }
 
@@ -421,7 +443,7 @@ public class NetworkServer:NetworkInstance
             Socket client = sReception.Accept();
             
             socketPool.AddSocket(client);
-            dataAdapter.Server_OnClientConnected(client);
+            AdapterAs<Handles_NetworkServerAdapter>().Server_OnClientConnected(client);
         }
     }
 
@@ -433,7 +455,7 @@ public class NetworkServer:NetworkInstance
 
     public override void DestroyInstance()
     {
-        dataAdapter.Server_BeforeDestroy(this);
+        AdapterAs<Handles_NetworkServerAdapter>().Server_BeforeDestroy(this);
         socketPool.Clear();
         sReception.Close();
         base.DestroyInstance();
@@ -449,7 +471,7 @@ public class  NetworkReciver:NetworkInstance
     public Socket rSocketInstance = null;
     public string connectionID;
 
-    public NetworkReciver(string id,NetworkServerSocketPool tPool, Socket rSocket,NetworkDataAdapter dAdapter) : base(dAdapter)
+    public NetworkReciver(string id,NetworkServerSocketPool tPool, Socket rSocket, Handles_NetworkServerAdapter dAdapter) : base(dAdapter)
     {
         connectionID = id;
         parentPool = tPool;
@@ -535,7 +557,7 @@ public class  NetworkReciver:NetworkInstance
 
     public void ReleaseSelf()
     {
-        dataAdapter.Server_OnClientDisconnected(this);
+        AdapterAs<Handles_NetworkServerAdapter>().Server_OnClientDisconnected(this);
         parentPool.RemoveSocket(connectionID);
         DestroyInstance();
     }
@@ -548,12 +570,12 @@ public class NetworkClient : NetworkInstance
 {
     public Socket clientSocket = null;
     public string reciveDatas = "enter";
-    public NetworkClient(NetworkConfig config, NetworkDataAdapter dAdapter) : base(dAdapter)
+    public NetworkClient(NetworkConfig config, Handles_NetworkDataAdapter dAdapter) : base(dAdapter)
     {
         Launch(config);
     }
 
-    public NetworkClient(NetworkDataAdapter dAdapter) : base(dAdapter) { }
+    public NetworkClient(Handles_NetworkDataAdapter dAdapter) : base(dAdapter) { }
 
     public override NetworkInstance Launch(NetworkConfig config)
     {
@@ -572,7 +594,7 @@ public class NetworkClient : NetworkInstance
         MainThread.Start();
         clientSocket.SendTimeout = config.sendTimeOut;
         clientSocket.ReceiveTimeout = config.reciveTimeOut;
-        dataAdapter.Client_Launch(this);
+        AdapterAs<Handles_NetworkClientAdapter>().Client_Launch(this);
         return base.Launch(config);
     }
 
@@ -625,7 +647,7 @@ public class NetworkClient : NetworkInstance
 
     public override void DestroyInstance()
     {
-        dataAdapter.Client_BeforeDestroy(this);
+        AdapterAs<Handles_NetworkClientAdapter>().Client_BeforeDestroy(this);
         clientSocket.Close();
         base.DestroyInstance();
     }
