@@ -13,7 +13,7 @@ class ChatManager
             return Convert.ToInt64(ts.TotalMilliseconds);
         }
     }
-
+    public bool showMsg = true;
     public string user;
     Dictionary<Int64, MsgData> msgList;
     public Dictionary<Int64, MsgData> MsgList
@@ -30,13 +30,19 @@ class ChatManager
     public ChatManager(string _user) {
         user = _user;
         sendTimeLine = 0;
+        showMsg = true;
+    }
+    public ChatManager SetMsgDisplay(bool result)
+    {
+        showMsg = result;
+        return this;
     }
 
     public string ChatMsg(string msg) {
        MsgData mdata = MsgData.Instance<MsgData>().Set(TimeStamp,msg,user).Called("msg").As<MsgData>();
        MsgList.Add(mdata.timestamp, mdata);
-       ShowMsg();
-       return msg;
+        if(showMsg) ShowMsg();
+        return msg;
     }
 
 
@@ -101,7 +107,7 @@ class ChatManager
             count++;
         }
         MsgList.OrderBy(x => x.Key);
-        if (count > 0)
+        if (count > 0 && showMsg)
         ShowMsg();
     }
 

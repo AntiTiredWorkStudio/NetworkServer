@@ -134,6 +134,16 @@ public class NetworkConfig
            return "0.0.0.0";
         }
     }
+    /// <summary>
+    /// 外网服务器地址
+    /// </summary>
+    public static string ExtranetServerIPConfigAdress
+    {
+        get
+        {
+            return "0.0.0.0";
+        }
+    }
 
     private NetworkConfig() { }
     public static NetworkConfig Instance()

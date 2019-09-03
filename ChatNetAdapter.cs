@@ -19,7 +19,7 @@ class ChatNetAdapterServer : Handles_NetworkServerAdapter
                 AddressFamily(AddressFamily.InterNetwork).
                 SocketType(SocketType.Stream).
                 Protocol(ProtocolType.Tcp).
-                IP(NetworkConfig.GetIPAdress).
+                IP(NetworkConfig.ExtranetServerIPConfigAdress).
                 Port(8324).
                 TimeoutSend(100000).
                 TimeoutRecive(100000).

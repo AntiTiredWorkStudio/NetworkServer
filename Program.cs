@@ -26,6 +26,29 @@ namespace MRServer
                 }
             }
         }
+        static void OnClientAndServer()
+        {
+            ChatNetAdapterServer NetServerAdapter = (new ChatNetAdapterServer());
+            NetServerAdapter.serverChatManager.SetMsgDisplay(false);
+            ChatNetAdapter NetClientAdapter = new ChatNetAdapter();
+            string command = "";
+            while ((command = Console.ReadLine()) != "exit")
+            {
+                if (command == "view")
+                {
+                    string all = "|";
+                    foreach (MsgData data in NetServerAdapter.serverChatManager.MsgList.Values)
+                    {
+                        all += " " + data.msg + " |";
+                    }
+                    Console.WriteLine(all);
+                }
+                else
+                {
+                    NetClientAdapter.chatManager.ChatMsg(command);
+                }
+            }
+        }
         static void OnClient()
         {
             ChatNetAdapter NetAdapter = new ChatNetAdapter();
@@ -35,17 +58,22 @@ namespace MRServer
             }
         }
 
+
         static void Main(string[] args)
         {
              //while (true)
              //{
-                 Console.WriteLine("'server'=>作为服务端启动,'client'=>作为服务端启动,'exit'=>退出");
+                 Console.WriteLine("'server'=>作为服务端启动,'clients'=>作为服务端与客户端启动,'client'=>作为服务端启动,'exit'=>退出");
                  switch (Console.ReadLine())
                  {
                      case "server":
                          Console.Clear();
                          OnServer();
                          break;
+                    case "clients":
+                        Console.Clear();
+                        OnClientAndServer();
+                        break;
                      case "client":
                          Console.Clear();
                          OnClient();
