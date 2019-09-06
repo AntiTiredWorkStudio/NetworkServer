@@ -81,8 +81,8 @@ public interface Handles_NetworkClientAdapter : Handles_NetworkDataAdapter
     /// <summary>
     /// 当客户端销毁前
     /// </summary>
-    /// <param name="server">返回客户端对象</param>
-    void Client_BeforeDestroy(NetworkClient server);
+    /// <param name="client">返回客户端对象</param>
+    void Client_BeforeDestroy(NetworkClient client);
 }
 /// <summary>
 /// 网络中心控制器
@@ -293,9 +293,22 @@ public class NetworkInstance
             try{MainThread.Abort();}catch(Exception e) { /*dataAdapter.Log(e.ToString());*/ }
         }
     }
-
+    public virtual T DuplicateInstance<T>(Handles_NetworkDataAdapter dAdapter) where T:NetworkInstance
+    {
+        return new NetworkInstance(dAdapter) as T;
+    }
     public virtual NetworkInstance Launch(NetworkConfig config){state = InstanceState.launch; dataConfig = config; return this; }
-
+    public T Launch<T>(NetworkConfig config) where T : NetworkInstance {
+        return Launch(config) as T;
+    }
+    public T Launch<T>() where T : NetworkInstance
+    {
+        if(dataConfig == null)
+        {
+            throw new Exception("网络实例未配置");
+        }
+        return Launch(dataConfig) as T;
+    }
     public NetworkInstance(Handles_NetworkDataAdapter dAdapter)
     {
         dataAdapter = dAdapter;
@@ -422,7 +435,10 @@ public class NetworkServer:NetworkInstance
     }
 
     public NetworkServer(Handles_NetworkServerAdapter dAdapter) : base(dAdapter) { }
-
+    public override T DuplicateInstance<T>(Handles_NetworkDataAdapter dAdapter)
+    {
+        return new NetworkServer(dataConfig, (Handles_NetworkServerAdapter)dAdapter) as T;
+    }
     public override NetworkInstance Launch(NetworkConfig config)
     {
         sReception = new Socket(config.afamily, config.stype, config.ptype);
@@ -587,6 +603,11 @@ public class NetworkClient : NetworkInstance
 
     public NetworkClient(Handles_NetworkDataAdapter dAdapter) : base(dAdapter) { }
 
+    public override T DuplicateInstance<T>(Handles_NetworkDataAdapter dAdapter)
+    {
+        return new NetworkClient(dataConfig,(Handles_NetworkClientAdapter)dAdapter) as T;
+    }
+
     public override NetworkInstance Launch(NetworkConfig config)
     {
         //设定服务器IP地址  
@@ -597,7 +618,9 @@ public class NetworkClient : NetworkInstance
             clientSocket.Connect(targetEndPoint); //配置服务器IP与端口  
         }catch(Exception e)
         {
+            base.Launch(config);
             dataAdapter.Log(e.ToString());
+            AdapterAs<Handles_NetworkClientAdapter>().Client_BeforeDestroy(this);
             return this;
         }
         MainThread = new Thread(SendAndRecive);

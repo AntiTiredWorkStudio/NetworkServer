@@ -115,9 +115,10 @@ class ChatNetAdapter : Handles_NetworkClientAdapter
             chatManager.user = netClient.clientSocket.LocalEndPoint.ToString();
         Console.WriteLine((state == InstanceState.launch)?"启动成功":"启动失败");
     }
-    public void Client_BeforeDestroy(NetworkClient server)
+    public void Client_BeforeDestroy(NetworkClient client)
     {
         Console.WriteLine("客户端关闭");
+        netClient = client.DuplicateInstance<NetworkClient>(this).Launch<NetworkClient>();
     }
 
     public void OnSended(byte[] sended)
